@@ -13,8 +13,7 @@ database/
 supabase/.env
 supabase/.temp/
 
-# API Keys & Secrets
-config.js
+# API Keys & Secrets (NOT supabase-config.js - anon key is safe for public)
 secrets.json
 *.key
 *.pem

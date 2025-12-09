@@ -199,4 +199,192 @@ document.addEventListener('mousemove', (e) => {
     cursorGlow.style.top = e.clientY + 'px';
 });
 
+// =============================================
+// SUPABASE INTEGRATION
+// =============================================
+
+// Load data from Supabase on page load
+async function loadSupabaseData() {
+    try {
+        // Check if supabase config exists
+        if (typeof supabase === 'undefined') {
+            console.log('Supabase not configured, using static content');
+            return;
+        }
+
+        // Load Services
+        await loadServices();
+
+        // Load Statistics
+        await loadStatistics();
+
+        // Setup contact form
+        setupContactForm();
+
+        console.log('Supabase data loaded successfully!');
+    } catch (error) {
+        console.error('Error loading Supabase data:', error);
+    }
+}
+
+// Load Services from Supabase
+async function loadServices() {
+    try {
+        const services = await supabase.fetch('services', {
+            select: '*',
+            order: 'display_order.asc',
+            filter: { 'is_active': 'eq.true' }
+        });
+
+        if (services && services.length > 0) {
+            const servicesGrid = document.querySelector('.services-grid');
+            if (servicesGrid) {
+                servicesGrid.innerHTML = services.map(service => `
+                    <div class="service-card">
+                        <div class="service-icon">${service.icon}</div>
+                        <h3>${service.title}</h3>
+                        <p>${service.description}</p>
+                    </div>
+                `).join('');
+
+                // Re-apply animations to new cards
+                initServiceCardAnimations();
+            }
+        }
+    } catch (error) {
+        console.log('Using static services data');
+    }
+}
+
+// Load Statistics from Supabase
+async function loadStatistics() {
+    try {
+        const stats = await supabase.fetch('statistics', {
+            select: '*',
+            order: 'display_order.asc'
+        });
+
+        if (stats && stats.length > 0) {
+            const statsContainer = document.querySelector('.stats');
+            if (statsContainer) {
+                statsContainer.innerHTML = stats.map(stat => `
+                    <div class="stat-item">
+                        <h3>${stat.value}${stat.suffix}</h3>
+                        <p>${stat.label}</p>
+                    </div>
+                `).join('');
+
+                // Re-apply reveal animations
+                document.querySelectorAll('.stat-item').forEach(item => {
+                    item.classList.add('reveal-element');
+                    statsObserver.observe(item);
+                });
+            }
+        }
+    } catch (error) {
+        console.log('Using static statistics data');
+    }
+}
+
+// Setup Contact Form to submit to Supabase
+function setupContactForm() {
+    const form = document.querySelector('.contact-form');
+    if (!form) return;
+
+    form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const originalText = submitBtn.textContent;
+
+        // Get form data
+        const formData = {
+            name: form.querySelector('input[type="text"]').value,
+            email: form.querySelector('input[type="email"]').value,
+            message: form.querySelector('textarea').value
+        };
+
+        // Validate
+        if (!formData.name || !formData.email || !formData.message) {
+            showNotification('Mohon lengkapi semua field!', 'error');
+            return;
+        }
+
+        try {
+            // Show loading state
+            submitBtn.textContent = 'Mengirim...';
+            submitBtn.disabled = true;
+
+            // Submit to Supabase
+            await supabase.insert('contact_messages', formData);
+
+            // Success
+            showNotification('Pesan berhasil dikirim! Kami akan segera menghubungi Anda.', 'success');
+            form.reset();
+
+        } catch (error) {
+            console.error('Error submitting form:', error);
+            showNotification('Gagal mengirim pesan. Silakan coba lagi.', 'error');
+        } finally {
+            submitBtn.textContent = originalText;
+            submitBtn.disabled = false;
+        }
+    });
+}
+
+// Show notification
+function showNotification(message, type = 'success') {
+    // Remove existing notification
+    const existing = document.querySelector('.notification');
+    if (existing) existing.remove();
+
+    const notification = document.createElement('div');
+    notification.className = `notification notification-${type}`;
+    notification.innerHTML = `
+        <span>${message}</span>
+        <button onclick="this.parentElement.remove()">&times;</button>
+    `;
+    document.body.appendChild(notification);
+
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        notification.classList.add('fade-out');
+        setTimeout(() => notification.remove(), 300);
+    }, 5000);
+}
+
+// Re-initialize service card animations after loading from Supabase
+function initServiceCardAnimations() {
+    const cards = document.querySelectorAll('.service-card');
+    cards.forEach(card => {
+        card.classList.add('reveal-element');
+
+        card.addEventListener('mousemove', (e) => {
+            const rect = card.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+
+            const centerX = rect.width / 2;
+            const centerY = rect.height / 2;
+
+            const rotateX = (y - centerY) / 10;
+            const rotateY = (centerX - x) / 10;
+
+            card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-15px) scale(1.02)`;
+        });
+
+        card.addEventListener('mouseleave', () => {
+            card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0) scale(1)';
+        });
+    });
+
+    // Trigger reveal
+    setTimeout(() => {
+        cards.forEach(card => card.classList.add('revealed'));
+    }, 100);
+}
+
+// Initialize Supabase data on page load
+document.addEventListener('DOMContentLoaded', loadSupabaseData);
+
 console.log('Website loaded successfully!');
