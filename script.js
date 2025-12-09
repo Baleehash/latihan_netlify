@@ -70,28 +70,38 @@ const revealOnScroll = () => {
         const elementTop = element.getBoundingClientRect().top;
         const windowHeight = window.innerHeight;
 
-        // Increased threshold to trigger earlier
-        if (elementTop < windowHeight - 50) {
+        // Element is visible if it's anywhere in viewport or above
+        if (elementTop < windowHeight + 100) {
             element.classList.add('revealed');
         }
     });
 };
 
-// Add reveal class to elements
-revealElements.forEach(element => {
+// Add reveal class to elements with staggered delay
+revealElements.forEach((element, index) => {
     element.classList.add('reveal-element');
+    // Add small delay for stagger effect
+    element.style.transitionDelay = `${index * 0.1}s`;
 });
 
-// Trigger reveal on multiple events to ensure it works
+// Trigger reveal on scroll
 window.addEventListener('scroll', revealOnScroll);
-window.addEventListener('load', revealOnScroll);
-document.addEventListener('DOMContentLoaded', () => {
-    // Slight delay to ensure elements are rendered
-    setTimeout(revealOnScroll, 100);
-    setTimeout(revealOnScroll, 500);
+
+// Force reveal all elements after page loads to ensure visibility
+window.addEventListener('load', () => {
+    revealOnScroll();
+    // Backup: reveal all after 1 second regardless
+    setTimeout(() => {
+        revealElements.forEach(el => el.classList.add('revealed'));
+    }, 1000);
 });
 
-// Also trigger immediately
+// Also try on DOMContentLoaded
+document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(revealOnScroll, 200);
+});
+
+// Immediate trigger
 revealOnScroll();
 
 // Navbar scroll effect
