@@ -70,7 +70,8 @@ const revealOnScroll = () => {
         const elementTop = element.getBoundingClientRect().top;
         const windowHeight = window.innerHeight;
 
-        if (elementTop < windowHeight - 100) {
+        // Increased threshold to trigger earlier
+        if (elementTop < windowHeight - 50) {
             element.classList.add('revealed');
         }
     });
@@ -81,8 +82,17 @@ revealElements.forEach(element => {
     element.classList.add('reveal-element');
 });
 
+// Trigger reveal on multiple events to ensure it works
 window.addEventListener('scroll', revealOnScroll);
 window.addEventListener('load', revealOnScroll);
+document.addEventListener('DOMContentLoaded', () => {
+    // Slight delay to ensure elements are rendered
+    setTimeout(revealOnScroll, 100);
+    setTimeout(revealOnScroll, 500);
+});
+
+// Also trigger immediately
+revealOnScroll();
 
 // Navbar scroll effect
 const navbar = document.querySelector('.navbar');
