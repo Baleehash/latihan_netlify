@@ -280,10 +280,15 @@ body {
 }
 
 .about-content {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 60px;
     align-items: center;
+}
+
+.about-text {
+    max-width: 800px;
+    text-align: center;
 }
 
 .about-text p {
@@ -294,9 +299,11 @@ body {
 }
 
 .stats {
-    display: flex;
-    gap: 20px;
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 30px;
+    width: 100%;
+    max-width: 900px;
 }
 
 .stat-item {
@@ -875,17 +882,33 @@ body {
         font-size: 2rem;
     }
 
-    .about-content,
+    .about-content {
+        gap: 40px;
+    }
+
+    .about-text {
+        text-align: center;
+    }
+
+    .about-text p {
+        font-size: 1rem;
+    }
+
     .contact-content {
         grid-template-columns: 1fr;
     }
 
     .stats {
-        flex-direction: column;
+        grid-template-columns: 1fr;
+        gap: 20px;
     }
 
     .stat-item {
         padding: 30px 20px;
+    }
+
+    .stat-item h3 {
+        font-size: 2.5rem;
     }
 
     .service-card {
